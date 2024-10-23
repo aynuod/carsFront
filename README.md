@@ -1,70 +1,174 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+---
 
-## Available Scripts
+# Cars Frontend (React)
 
-In the project directory, you can run:
+Ce projet est la partie frontend de l'application **Voiture Shop App**, développée avec **React** et Dockerisée pour une mise en production facile. Cette application communique avec un backend Spring Boot et utilise une API REST pour la gestion des voitures.
 
-### `npm start`
+## Prérequis
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Assurez-vous d'avoir les outils suivants installés sur votre machine :
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Node.js**: Version 14 ou plus [Télécharger ici](https://nodejs.org/).
+- **npm**: Installé avec Node.js.
+- **Docker**: [Télécharger Docker ici](https://www.docker.com/get-started).
+- **Git**: Pour cloner le projet.
 
-### `npm test`
+## Setup et Instructions de Build
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### ⚠️ Avertissements Importants
 
-### `npm run build`
+1. **Ports Utilisés**: Le frontend utilise par défaut le port `3000`. Si ce port est déjà utilisé sur votre machine, vous devrez le changer dans le `docker-compose.yml` ou libérer le port.
+2. **Node Version**: Ce projet utilise Node.js 14 (via l'image Docker `node:14-alpine`). Assurez-vous que cette version est compatible avec vos outils.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 1. Cloner le Répertoire
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Commencez par cloner le projet depuis GitHub et naviguez dans le dossier du projet :
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+git clone https://github.com/aynuod/carsFrontend.git
+cd carsFrontend
+```
 
-### `npm run eject`
+### 2. Structure du Dockerfile
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Le Dockerfile fourni est basé sur l'image **node:14-alpine**, une version légère de Node.js idéale pour les environnements de production. Voici le contenu du Dockerfile :
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```dockerfile
+FROM node:14-alpine as frontend
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
+EXPOSE 3000
+CMD ["npm", "start"]
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+#### Explication du Dockerfile :
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- **FROM node:14-alpine** : Utilise une image légère de Node.js version 14.
+- **WORKDIR /app** : Définit le répertoire de travail dans le conteneur Docker.
+- **COPY package*.json ./** : Copie les fichiers `package.json` et `package-lock.json` dans le conteneur.
+- **RUN npm install** : Installe les dépendances du projet définies dans le `package.json`.
+- **COPY . .** : Copie le reste des fichiers du projet dans le conteneur.
+- **RUN npm run build** : Compile le projet React en fichiers statiques prêts pour la production.
+- **EXPOSE 3000** : Expose le port 3000 pour accéder à l'application.
+- **CMD ["npm", "start"]** : Lance l'application en mode développement.
 
-## Learn More
+### 3. Construire l'Image Docker
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Une fois les fichiers prêts, vous pouvez construire l'image Docker pour le frontend. Exécutez la commande suivante depuis la racine du projet :
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+docker build -t frontend-react .
+```
 
-### Code Splitting
+Cette commande créera une image Docker appelée `frontend-react` basée sur le Dockerfile.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### 4. Lancer les Conteneurs avec Docker Compose
 
-### Analyzing the Bundle Size
+Le projet peut être lancé avec Docker Compose, qui coordonne à la fois le frontend React, le backend Spring Boot, et les autres services (base de données, monitoring, etc.).
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Si un fichier `docker-compose.yml` est déjà configuré pour ce projet, exécutez la commande suivante pour démarrer les services :
 
-### Making a Progressive Web App
+```bash
+docker-compose up -d
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Si vous n'avez pas de fichier Docker Compose configuré, voici un exemple minimaliste pour exécuter uniquement le frontend :
 
-### Advanced Configuration
+```yaml
+version: '3'
+services:
+  frontend:
+    image: frontend-react
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+    environment:
+      - NODE_ENV=production
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+Vous pouvez alors lancer le frontend en exécutant :
 
-### Deployment
+```bash
+docker-compose up -d frontend
+```
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### 5. Accéder à l'Application
 
-### `npm run build` fails to minify
+Une fois le conteneur lancé, vous pouvez accéder à l'application React à l'adresse suivante :
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- **URL du frontend**: [http://localhost:3000](http://localhost:3000)
+
+## Développement Local(hors Docker)
+
+### Installation des Dépendances
+
+Si vous travaillez en développement local (hors Docker), vous devez installer les dépendances Node.js avec `npm` :
+
+```bash
+npm install
+```
+
+### Lancer l'Application en Mode Développement
+
+Pour démarrer l'application en mode développement avec hot-reloading, utilisez la commande suivante :
+
+```bash
+npm start
+```
+
+L'application sera disponible sur [http://localhost:3000](http://localhost:3000).
+
+### Compilation pour la Production
+
+Pour compiler le projet en fichiers statiques prêts pour la production, exécutez :
+
+```bash
+npm run build
+```
+
+Cela créera un dossier `build/` contenant les fichiers optimisés.
+
+## Gestion des Environnements
+
+### Variables d'Environnement
+
+Les variables d'environnement peuvent être configurées pour les différents environnements (développement, production). Elles sont définies dans le fichier `.env` à la racine du projet. Assurez-vous de configurer correctement les variables telles que l'URL de l'API backend.
+
+Exemple de fichier `.env` :
+
+```
+REACT_APP_BACKEND_API_URL=http://localhost:8080/api
+```
+
+Cela permet de définir l'URL de l'API backend que le frontend utilise pour les appels HTTP.
+
+## Débogage
+
+Si des problèmes surviennent avec Docker ou l'application, voici quelques commandes utiles pour le débogage :
+
+- **Logs des conteneurs** :
+  ```bash
+  docker-compose logs frontend
+  ```
+
+- **Reconstruction de l'image** :
+  ```bash
+  docker-compose build frontend
+  ```
+
+- **Arrêter et supprimer les conteneurs** :
+  ```bash
+  docker-compose down
+  ```
+
+## Accès à l'API Backend
+
+Le frontend communique avec l'API backend hébergée sur [http://localhost:8080](http://localhost:8080). Assurez-vous que le backend est en cours d'exécution pour éviter des erreurs d'accès aux données dans le frontend.
+
+---
+
