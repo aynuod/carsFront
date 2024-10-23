@@ -166,9 +166,14 @@ Si des problèmes surviennent avec Docker ou l'application, voici quelques comma
   docker-compose down
   ```
 
-## Accès à l'API Backend
+## Accès à l'API Backend:
+Le frontend communique avec l'API backend hébergée sur http://localhost:8080.
 
-Le frontend communique avec l'API backend hébergée sur [http://localhost:8080](http://localhost:8080). Assurez-vous que le backend est en cours d'exécution pour éviter des erreurs d'accès aux données dans le frontend.
+Si vous exécutez le backend localement, assurez-vous que le backend est bien en cours d'exécution pour éviter des erreurs d'accès aux données dans le frontend.
+
+Si vous préférez exécuter le backend et le frontend avec Docker, suivez les étapes dans ce projet pour déployer le backend avec Docker : https://github.com/aynuod/carsBackend.git.
+
+Assurez-vous que les deux services (backend et frontend) sont bien configurés et communiquent entre eux pour garantir le bon fonctionnement de l'application.
 
 ---
 
